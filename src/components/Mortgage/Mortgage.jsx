@@ -10,16 +10,15 @@ function Mortgage() {
 
     return (
         <>
-        <h1>Mortgage Financing</h1>
-        <img className={styles.mortgageImage} src="https://credible.com/assets/cms/dealing_with_insurance_adjusters_article_e6f090af0b.png" alt="mortgage-loan"/>
-        <div>
-            <p>Mortgage Payment: </p>
-            <p>Total Interest Paid:</p>
-            <p>Total Mortgage Cost: </p>
-            <p>Annual Property Taxes: </p>
-            <p>Actual Monthly Payment: </p>
-        </div>
-        <button onClick={goBack}>Back</button>
+            <h1>Mortgage Financing</h1>
+            <div>
+                <p>Mortgage Payment: </p>
+                <p>Total Interest Paid:</p>
+                <p>Total Mortgage Cost: </p>
+                <p>Annual Property Taxes: </p>
+                <p>Actual Monthly Payment: </p>
+            </div>
+            <button onClick={goBack}>Back</button>
         </>
     )
 }
