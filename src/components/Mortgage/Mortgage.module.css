@@ -1,3 +1,33 @@
-.mortgageImage {
-    border-radius: 25%;
+.page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.results {
+    background-color: lightblue;
+    width: 50%;
+    border-radius: 10px;
+    padding: .5%;
+}
+
+.inputs {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    position: absolute; 
+    top: 72px; 
+    left: 64px; 
+    color: black;
+    background-color: lightblue;
+}
+
+.sliderDiv {
+    width: 20%;
 }

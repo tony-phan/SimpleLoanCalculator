@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from './Automotive.module.css'
 import { Slider, Alert, AlertTitle, Snackbar } from "@mui/material";
+import { moneyFormat } from "../../helpers";
 
 function Automotive() {
     const [cost, setCost] = useState(0); // cost of vehicle
@@ -14,12 +15,6 @@ function Automotive() {
 
     const goBack = () => {
         navigate(-1);
-    }
-
-    const moneyFormat = (amount) => {
-        // format the price to 2 significant digits and find all occurrences of 3 digits that are not followed by another digit and replaces them with a comma
-        let price = amount.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return "$" + price;
     }
     
     const getMonthlyPayment = () => {
@@ -64,22 +59,22 @@ function Automotive() {
             <button className={styles.btn} onClick={goBack}>Back</button>
             <h1>Automotive Financing</h1>
             <div className={styles.inputs}>
-                <div>
+                <div className={styles.sliderDiv}>
                     <h4>Cost of Vehicle</h4>
                     {moneyFormat(cost)}
-                    <Slider disabled={sliderDisabled} value={cost} aria-label="Default" valueLabelDisplay="off" min={0} max={100000} step={5000} onChange={(event, newValue) => updateCost(newValue)} />
+                    <Slider disabled={sliderDisabled} value={cost} aria-label="Default" valueLabelDisplay="off" min={0} max={100000} step={500} onChange={(event, newValue) => updateCost(newValue)} />
                 </div>
-                <div>
+                <div className={styles.sliderDiv}>
                     <h4>Interest Rate</h4>
                     {interest} %
                     <Slider value={interest} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newValue) => setInterest(newValue)} />
                 </div>
-                <div>
+                <div className={styles.sliderDiv}>
                     <h4>Length of Loan</h4>
-                    {length} months
+                    {length} month(s)
                     <Slider value={length} aria-label="Default" valueLabelDisplay="off" min={1} max={84} onChange={(event, newValue) => setLength(newValue)} />
                 </div>
-                <div>
+                <div className={styles.sliderDiv}>
                     <h4>Down Payment</h4>
                     {moneyFormat(downPayment)}
                     <Slider value={downPayment} aria-label="Default" valueLabelDisplay="off" min={0} max={cost} step={500} onChange={(event, newValue) => setDownPayment(newValue)} />
