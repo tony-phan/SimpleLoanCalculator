@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import styles from './Mortgage.module.css';
-import { moneyFormat } from "../../helpers";
+import { moneyFormat } from "../../helpers/helpers";
 import { Slider, Alert, AlertTitle, Snackbar } from "@mui/material";
 
 function Mortgage() {

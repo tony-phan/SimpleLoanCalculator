@@ -1,14 +1,20 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import styles from './Automotive.module.css'
 import { Slider, Alert, AlertTitle, Snackbar } from "@mui/material";
-import { moneyFormat } from "../../helpers";
+import { moneyFormat } from "../../helpers/helpers";
+import automotiveReducer from "./AutomotiveReducer";
+import { getMonthlyPayment, getTotalInterestPaid, getTotalVehicleCost } from "../../helpers/AutomotiveHelpers";
+
+const initialState = {
+    cost: 0,                    // cost of vehicle
+    interest: 0,                // interest rate (%)
+    length: 1,                  // length of loan (in months)
+    downPayment: 0              // down payment + vehicle trade in value
+};
 
 function Automotive() {
-    const [cost, setCost] = useState(0); // cost of vehicle
-    const [interest, setInterest] = useState(3.5); // interest rate (%)
-    const [length, setLength] = useState(42); // length of loan (in months)
-    const [downPayment, setDownPayment] = useState(0); // down payment + vehicle trade in value
+    const [state, dispatch] = useReducer(automotiveReducer, initialState);
     const [sliderDisabled, setSliderDisabled] = useState(false);
     const [errorFlag, setErrorFlag] = useState(false);
     const navigate = useNavigate();
@@ -16,42 +22,24 @@ function Automotive() {
     const goBack = () => {
         navigate(-1);
     }
-    
-    const getMonthlyPayment = () => {
-        let financed = cost - downPayment;
-        if(interest === 0) {
-            return financed / length;
-        }
-        let rate = interest * .001;
-        return (rate * financed) / (1 - Math.pow(1 + rate, -length));
-    }
-
-    const getTotalInterestPaid = () => {
-        let payment = getMonthlyPayment();
-        return payment * length - cost + downPayment;
-    }
-
-    const getTotalVehicleCost = () => {
-        return getMonthlyPayment() * length + downPayment;
-    }
-
-    const updateCost = (newCost) => {
-        // logic check to ensure the cost is not less than down payment
-        if(newCost < downPayment) {
-            console.log('cost cannot be less than down payment!');
-            setSliderDisabled(true);
-            setErrorFlag(true);
-        } else {
-            setCost(newCost);
-        }
-    }
 
     const handleClose = () => {
         if(errorFlag) {
             setSliderDisabled(false);
             setErrorFlag(false);
-            setCost(downPayment);
+            dispatch({ type: "UPDATE_COST", value: state.downPayment });
         } 
+    }
+
+    const updateCost = (newCost) => {
+        // logic check to ensure the cost is not less than down payment
+        if(newCost < state.downPayment) {
+            console.log('cost cannot be less than down payment!');
+            setSliderDisabled(true);
+            setErrorFlag(true);
+        } else {
+            dispatch({ type: "UPDATE_COST", value: newCost });
+        }
     }
 
     return (
@@ -61,29 +49,29 @@ function Automotive() {
             <div className={styles.inputs}>
                 <div className={styles.sliderDiv}>
                     <h4>Cost of Vehicle</h4>
-                    {moneyFormat(cost)}
-                    <Slider disabled={sliderDisabled} value={cost} aria-label="Default" valueLabelDisplay="off" min={0} max={100000} step={500} onChange={(event, newValue) => updateCost(newValue)} />
+                    {moneyFormat(state.cost)}
+                    <Slider disabled={sliderDisabled} value={state.cost} aria-label="Default" valueLabelDisplay="off" min={0} max={100000} step={500} onChange={(event, newCost) => updateCost(newCost)} />
                 </div>
                 <div className={styles.sliderDiv}>
                     <h4>Interest Rate</h4>
-                    {interest} %
-                    <Slider value={interest} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newValue) => setInterest(newValue)} />
+                    {state.interest} %
+                    <Slider value={state.interest} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newInterest) => dispatch({ type: "UPDATE_INTEREST", value: newInterest })} />
                 </div>
                 <div className={styles.sliderDiv}>
                     <h4>Length of Loan</h4>
-                    {length} month(s)
-                    <Slider value={length} aria-label="Default" valueLabelDisplay="off" min={1} max={84} onChange={(event, newValue) => setLength(newValue)} />
+                    {state.length} month(s)
+                    <Slider value={state.length} aria-label="Default" valueLabelDisplay="off" min={1} max={84} onChange={(event, newLength) => dispatch({ type: "UPDATE_LENGTH", value: newLength })} />
                 </div>
                 <div className={styles.sliderDiv}>
                     <h4>Down Payment</h4>
-                    {moneyFormat(downPayment)}
-                    <Slider value={downPayment} aria-label="Default" valueLabelDisplay="off" min={0} max={cost} step={500} onChange={(event, newValue) => setDownPayment(newValue)} />
+                    {moneyFormat(state.downPayment)}
+                    <Slider value={state.downPayment} aria-label="Default" valueLabelDisplay="off" min={0} max={state.cost} step={500} onChange={(event, newDownPayment) => dispatch({ type: "UPDATE_DOWN_PAYMENT", value: newDownPayment })} />
                 </div>
             </div>
             <div className={styles.results}>
-                <p><strong>Monthly Payment</strong></p> {moneyFormat(getMonthlyPayment())}
-                <p><strong>Total Interest Paid</strong></p> {moneyFormat(getTotalInterestPaid())}
-                <p><strong>Total Vehicle Cost</strong></p> {moneyFormat(getTotalVehicleCost())}
+                <p><strong>Monthly Payment</strong></p> {moneyFormat(getMonthlyPayment(state.cost, state.downPayment, state.interest, state.length))}
+                <p><strong>Total Interest Paid</strong></p> {moneyFormat(getTotalInterestPaid(state.cost, state.downPayment, state.interest, state.length))}
+                <p><strong>Total Vehicle Cost</strong></p> {moneyFormat(getTotalVehicleCost(state.cost, state.downPayment, state.interest, state.length))}
                 <p></p>
             </div>
 
