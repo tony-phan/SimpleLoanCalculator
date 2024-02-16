@@ -1,40 +1,25 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import styles from './Mortgage.module.css';
 import { moneyFormat } from "../../helpers/helpers";
 import { Slider, Alert, AlertTitle, Snackbar } from "@mui/material";
+import mortgageReducer from "./MortgageReducer";
+import { getMortgage, getInterest, getCost, getAnnualPropertyTax } from "../../helpers/MortgageHelpers"; 
+
+const initialState = {
+    homePrice: 0,               // home price
+    interest: 0,                // interest rate (%)
+    length: 1,                  // length of loan (in years)
+    downPayment: 0,
+    closingCost: 0,
+    propertyTaxRate: 0   
+};
 
 function Mortgage() {
-    const [homePrice, setHomePrice] = useState(0);
-    const [interest, setInterest] = useState(3.5); // interest rate (%)
-    const [length, setLength] = useState(30); // length of loan (in years)
-    const [downPayment, setDownPayment] = useState(0);
-    const [closingCost, setClosingCost] = useState(2.0);
-    const [propertyTaxRate, setPropertyTaxRate] = useState(2.0);
+    const [state, dispatch] = useReducer(mortgageReducer, initialState);
     const [sliderDisabled, setSliderDisabled] = useState(false);
     const [errorFlag, setErrorFlag] = useState(false);
     const navigate = useNavigate();
-
-    const getMortgage = () => {
-        let financed = homePrice - downPayment + closingCost * 0.01 * homePrice;
-        if(interest === 0) { return financed / length }
-        let rate = interest * 0.01 / 12;
-        let months = length * 12;
-        return (rate * financed) / (1 - Math.pow(1 + rate, -months));
-    }
-
-    const getInterest = () => {
-        let payment = getMortgage();
-        return payment * length * 12 - homePrice + downPayment - closingCost;
-    }
-
-    const getCost = () => {
-        return getMortgage() * length * 12 + downPayment;
-    }
-
-    const getAnnualPropertyTax = () => {
-        return propertyTaxRate * 0.01 * homePrice;
-    }
 
     const goBack = () => {
         navigate(-1);
@@ -42,12 +27,12 @@ function Mortgage() {
 
     const updateHomePrice = (newPrice) => {
         // logic check to ensure the cost is not less than down payment
-        if(newPrice < downPayment) {
+        if(newPrice < state.downPayment) {
             console.log('home price cannot be less than down payment!');
             setSliderDisabled(true);
             setErrorFlag(true);
         } else {
-            setHomePrice(newPrice);
+            dispatch({ type: 'UPDATE_HOME_PRICE', value: newPrice });
         }
     }
 
@@ -55,7 +40,7 @@ function Mortgage() {
         if(errorFlag) {
             setSliderDisabled(false);
             setErrorFlag(false);
-            setHomePrice(downPayment);
+            dispatch({ type: 'UPDATE_HOME_PRICE', value: state.downPayment });
         } 
     }
 
@@ -66,41 +51,41 @@ function Mortgage() {
             <div className={styles.inputs}>
                 <div className={styles.sliderDiv}>
                     <h4>Home Price</h4>
-                    {moneyFormat(homePrice)}
-                    <Slider disabled={sliderDisabled} value={homePrice} aria-label="Default" valueLabelDisplay="off" min={0} max={3000000} step={25000} onChange={(event, newValue) => updateHomePrice(newValue)} />
+                    {moneyFormat(state.homePrice)}
+                    <Slider disabled={sliderDisabled} value={state.homePrice} aria-label="Default" valueLabelDisplay="off" min={0} max={3000000} step={25000} onChange={(event, newHomePrice) => updateHomePrice(newHomePrice)} />
                 </div>
                 <div className={styles.sliderDiv}>
                     <h4>Interest Rate</h4>
-                    {interest} %
-                    <Slider value={interest} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newValue) => setInterest(newValue)} />
+                    {state.interest} %
+                    <Slider value={state.interest} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newInterest) => dispatch({ type: "UPDATE_INTEREST", value: newInterest })} />
                 </div>
                 <div className={styles.sliderDiv}>
                     <h4>Length of Loan</h4>
-                    {length} year(s)
-                    <Slider value={length} aria-label="Default" valueLabelDisplay="off" min={1} max={84} onChange={(event, newValue) => setLength(newValue)} />
+                    {state.length} year(s)
+                    <Slider value={state.length} aria-label="Default" valueLabelDisplay="off" min={1} max={84} onChange={(event, newLength) => dispatch({ type: "UPDATE_LENGTH", value: newLength })} />
                 </div>
                 <div className={styles.sliderDiv}>
                     <h4>Down Payment</h4>
-                    {moneyFormat(downPayment)}
-                    <Slider value={downPayment} aria-label="Default" valueLabelDisplay="off" min={0} max={homePrice} step={5000} onChange={(event, newValue) => setDownPayment(newValue)} />
+                    {moneyFormat(state.downPayment)}
+                    <Slider value={state.downPayment} aria-label="Default" valueLabelDisplay="off" min={0} max={state.homePrice} step={5000} onChange={(event, newDownPayment) => dispatch({ type: "UPDATE_DOWN_PAYMENT", value: newDownPayment })} />
                 </div>
                 <div className={styles.sliderDiv}>
                     <h4>Closing Costs (% of House Price)</h4>
-                    {closingCost} %
-                    <Slider value={closingCost} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newValue) => setClosingCost(newValue)} />
+                    {state.closingCost} %
+                    <Slider value={state.closingCost} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newClosingCost) => dispatch({ type: "UPDATE_CLOSING_COST", value: newClosingCost })} />
                 </div>
                 <div className={styles.sliderDiv}>
                     <h4>Property Tax Rate (% of House Price)</h4>
-                    {propertyTaxRate} %
-                    <Slider value={propertyTaxRate} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newValue) => setPropertyTaxRate(newValue)} />
+                    {state.propertyTaxRate} %
+                    <Slider value={state.propertyTaxRate} aria-label="Default" valueLabelDisplay="off" min={0} max={15} step={0.1} onChange={(event, newPropertyTaxRate) => dispatch({ type: "UPDATE_PROPERTY_TAX_RATE", value: newPropertyTaxRate })} />
                 </div>
             </div>
             <div className={styles.results}>
-                <p><strong>Mortgage Payment</strong></p> {moneyFormat(getMortgage())}
-                <p><strong>Total Interest Paid</strong></p> {moneyFormat(getInterest())}
-                <p><strong>Total Mortgage Cost</strong></p> {moneyFormat(getCost())}
-                <p><strong>Annual Property Taxes</strong></p> {moneyFormat(getAnnualPropertyTax())}
-                <p><strong>Actual Monthly Payment</strong></p> {moneyFormat(getMortgage() + getAnnualPropertyTax() / 12)}
+                <p><strong>Mortgage Payment</strong></p> {moneyFormat(getMortgage(state.homePrice, state.downPayment, state.closingCost, state.interest, state.length))}
+                <p><strong>Total Interest Paid</strong></p> {moneyFormat(getInterest(state.homePrice, state.downPayment, state.closingCost, state.interest, state.length))}
+                <p><strong>Total Mortgage Cost</strong></p> {moneyFormat(getCost(state.homePrice, state.downPayment, state.closingCost, state.interest, state.length))}
+                <p><strong>Annual Property Taxes</strong></p> {moneyFormat(getAnnualPropertyTax(state.homePrice, state.propertyTaxRate))}
+                <p><strong>Actual Monthly Payment</strong></p> {moneyFormat(getMortgage(state.homePrice, state.downPayment, state.closingCost, state.interest, state.length) + getAnnualPropertyTax(state.homePrice, state.propertyTaxRate) / 12)}
                 <p></p>
             </div>
 
